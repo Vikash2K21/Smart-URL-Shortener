@@ -16,8 +16,8 @@ public class CorsConfig implements WebMvcConfigurer {
         registry.addMapping("/api/**")
             .allowedOrigins(
                 "http://localhost:3000",
-                "http://localhost:3001",
-                "https://smart-url-shortener-1-ofq2.onrender.com"
+                https://smart-url-shortener-1-ofq2.onrender.com,
+                "https://smart-url-shortener-a29p.onrender.com"
 )
             .allowedMethods("GET", "POST", "DELETE", "OPTIONS")
             .allowedHeaders("*")
