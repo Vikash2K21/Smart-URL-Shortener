@@ -1,7 +1,11 @@
 import { ShortenResponse } from "./types";
 import { getSessionId } from "./session";
 
-const BASE = "/api";
+// In production use the live backend URL
+// In development use /api (proxied by next.config.js to localhost:8080)
+const BASE = typeof window !== "undefined" && window.location.hostname !== "localhost"
+  ? "https://smart-url-shortener-a29p.onrender.com/api"
+  : "/api";
 
 function headers(): HeadersInit {
   return {
