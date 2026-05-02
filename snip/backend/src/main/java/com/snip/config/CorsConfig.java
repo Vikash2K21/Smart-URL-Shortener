@@ -14,7 +14,11 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-            .allowedOrigins(baseUrl, "http://localhost:3000", "http://localhost:3001")
+            .allowedOrigins(
+                "http://localhost:3000",
+                "http://localhost:3001",
+                "https://smart-url-shortener-1-ofq2.onrender.com"
+)
             .allowedMethods("GET", "POST", "DELETE", "OPTIONS")
             .allowedHeaders("*")
             .exposedHeaders("X-Session-Id")
