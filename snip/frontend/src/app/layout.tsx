@@ -30,6 +30,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={`${syne.variable} ${dmSans.variable} ${dmMono.variable}`}>
         {children}
+        {/* Keep backend alive — pings every 10 minutes to prevent Render free tier sleep */}
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            setInterval(function() {
+              fetch('https://smart-url-shortener-a29p.onrender.com/api/urls')
+                .catch(function() {});
+            }, 600000);
+          `
+        }} />
       </body>
     </html>
   );
