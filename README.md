@@ -3,6 +3,35 @@
 A full-stack URL shortener built with **Next.js 14** (frontend) and **Spring Boot 3.2** (backend).  
 Built as a skill assessment project for a Full-Stack Developer role.
 
+## 🌐 Live Demo
+
+> ⚠️ **Important — Please follow this order to avoid errors:**
+>
+> **Step 1 — Wake up the backend first (Required)**
+> Open this URL in browser and wait until you see `[]` response:
+> 👉 https://smart-url-shortener-a29p.onrender.com/api/urls
+>
+> **Step 2 — Then open the frontend**
+> 👉 https://smart-url-shortener-1-ofq2.onrender.com
+
+| Service | URL |
+|---------|-----|
+| 🖥️ **Frontend (Live App)** | https://smart-url-shortener-1-ofq2.onrender.com |
+| ⚙️ **Backend API** | https://smart-url-shortener-a29p.onrender.com |
+| 📁 **GitHub Repo** | https://github.com/Vikash2K21/Smart-URL-Shortener |
+
+> 💤 **Note:** Hosted on Render free tier — first load may take 
+> **20–30 seconds** to wake up from sleep. This is a free hosting 
+> limitation, not a code issue. If you see a JSON error, wait 
+> 30 seconds and try again.
+
+### Test the Live API
+\```
+GET  https://smart-url-shortener-a29p.onrender.com/api/urls
+POST https://smart-url-shortener-a29p.onrender.com/api/shorten
+\```
+
+
 > **No zip extraction needed.** Just clone, set up PostgreSQL, and run.
 
 ---

@@ -24,9 +24,7 @@ import java.util.stream.Collectors;
  *   a new row. The short_code column has a UNIQUE constraint, so if two
  *   concurrent requests generate the same code, only one INSERT succeeds;
  *   the other throws DataIntegrityViolationException. We catch that and retry
- *   up to MAX_RETRIES times with a fresh code. The DB constraint is the
- *   ultimate correctness guard; the retry loop handles the astronomically rare
- *   collision case.
+ *   up to MAX_RETRIES times with a fresh code.
  */
 @Service
 public class UrlShortenerService {
@@ -47,9 +45,6 @@ public class UrlShortenerService {
         this.validator = validator;
     }
 
-    /**
-     * Validate, optionally use custom code, then persist and return the short URL.
-     */
     @Transactional
     public ShortenResponse shorten(ShortenRequest request, String sessionId) {
         validator.validate(request.getUrl());
@@ -75,7 +70,6 @@ public class UrlShortenerService {
     }
 
     private ShortenResponse shortenWithGeneratedCode(String url, String sessionId) {
-        // Retry loop handles the rare case of a generated-code collision at the DB level.
         for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
             String code = generateCode();
             try {
@@ -83,8 +77,6 @@ public class UrlShortenerService {
                 mapping = repository.save(mapping);
                 return toResponse(mapping);
             } catch (DataIntegrityViolationException e) {
-                // UNIQUE constraint violation — another request inserted the same code.
-                // Generate a new code and retry. On the last attempt, re-throw.
                 if (attempt == MAX_RETRIES) {
                     throw new RuntimeException(
                         "Could not generate a unique short code after " + MAX_RETRIES + " attempts.", e);
@@ -94,13 +86,8 @@ public class UrlShortenerService {
         throw new RuntimeException("Unexpected: retry loop exited without returning.");
     }
 
-    /**
-     * Increment click count atomically (SQL UPDATE, not read-modify-write)
-     * and return the original URL for redirect.
-     */
     @Transactional
     public String resolve(String shortCode) {
-        // Atomic click-count increment before fetching avoids a separate UPDATE round-trip.
         int updated = repository.incrementClickCount(shortCode);
         if (updated == 0) {
             throw new ShortCodeNotFoundException(shortCode);
@@ -120,11 +107,19 @@ public class UrlShortenerService {
 
     @Transactional
     public void delete(String shortCode, String sessionId) {
-        // Only delete if the mapping belongs to this session
         repository.deleteByShortCodeAndSessionId(shortCode, sessionId);
     }
 
-    // --- helpers ---
+    /**
+     * Returns the full short URL for a given short code.
+     * Used by the QR code endpoint to know what URL to encode into the QR image.
+     */
+    @Transactional(readOnly = true)
+    public String getShortUrl(String shortCode) {
+        repository.findByShortCode(shortCode)
+            .orElseThrow(() -> new ShortCodeNotFoundException(shortCode));
+        return baseUrl + "/" + shortCode;
+    }
 
     private String generateCode() {
         StringBuilder sb = new StringBuilder(CODE_LENGTH);

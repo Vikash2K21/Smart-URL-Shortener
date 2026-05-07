@@ -1,42 +1,36 @@
 import type { Metadata } from "next";
-import { Syne, DM_Sans, DM_Mono } from "next/font/google";
 import "./globals.css";
-
-const syne = Syne({
-  subsets: ["latin"],
-  variable: "--font-syne",
-  weight: ["400", "600", "700", "800"],
-});
-
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  variable: "--font-dm-sans",
-  weight: ["400", "500", "600"],
-});
-
-const dmMono = DM_Mono({
-  subsets: ["latin"],
-  variable: "--font-dm-mono",
-  weight: ["400", "500"],
-});
 
 export const metadata: Metadata = {
   title: "Snip — Smart URL Shortener",
-  description: "Shorten, track, and manage your links with Snip.",
+  description: "Shorten, track, and manage your links.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${syne.variable} ${dmSans.variable} ${dmMono.variable}`}>
+      <body>
+        <div className="bg-mesh" />
+        <div className="bg-grid" />
         {children}
-        {/* Keep backend alive — pings every 10 minutes to prevent Render free tier sleep */}
+
+        {/* Restore saved theme before first paint — prevents flash */}
         <script dangerouslySetInnerHTML={{
           __html: `
+            (function() {
+              try {
+                var theme = localStorage.getItem('snip_theme') || 'dark';
+                if (theme === 'light') {
+                  document.documentElement.classList.add('light');
+                }
+              } catch(e) {}
+            })();
+
+            // Keep backend alive — ping every 5 minutes
             setInterval(function() {
               fetch('https://smart-url-shortener-a29p.onrender.com/api/urls')
                 .catch(function() {});
-            }, 600000);
+            }, 300000);
           `
         }} />
       </body>
