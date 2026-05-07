@@ -95,7 +95,12 @@ public class UrlShortenerController {
             headers.setCacheControl("public, max-age=3600");
 
             return new ResponseEntity<>(qrBytes, headers, HttpStatus.OK);
+
         } catch (Exception e) {
+            // Log exact error so we can see it in Render logs
+            System.err.println("QR generation failed for code: " + shortCode);
+            System.err.println("Error: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

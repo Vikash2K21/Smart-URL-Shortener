@@ -10,58 +10,45 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import org.springframework.stereotype.Service;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * QRCodeService — generates a QR code PNG image for a given URL.
- *
- * Uses Google's ZXing (Zebra Crossing) library.
- *
- * How it works:
- *  1. QRCodeWriter encodes the URL string into a BitMatrix
- *     (a 2D grid of true/false values representing black/white pixels)
- *  2. MatrixToImageWriter converts the BitMatrix into a PNG image
- *  3. We write the PNG bytes to a ByteArrayOutputStream and return them
- *
- * The controller then serves these bytes as image/png response.
- */
 @Service
 public class QRCodeService {
 
-    private static final int QR_SIZE = 250; // width and height in pixels
+    private static final int QR_SIZE = 250;
 
-    /**
-     * Generate a QR code PNG image for the given URL.
-     *
-     * @param url   the full short URL to encode e.g. https://snip.com/abc123
-     * @return      PNG image as byte array
-     */
     public byte[] generateQRCode(String url) throws WriterException, IOException {
 
-        // Hints tell ZXing how to encode the QR code
         Map<EncodeHintType, Object> hints = new HashMap<>();
-        hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H); // High error correction
-        hints.put(EncodeHintType.MARGIN, 2); // Quiet zone margin around QR code
+        hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H);
+        hints.put(EncodeHintType.MARGIN, 2);
         hints.put(EncodeHintType.CHARACTER_SET, "UTF-8");
 
-        // Encode URL into BitMatrix (grid of black/white pixels)
         QRCodeWriter writer = new QRCodeWriter();
-        BitMatrix bitMatrix = writer.encode(url, BarcodeFormat.QR_CODE, QR_SIZE, QR_SIZE, hints);
-
-        // Convert BitMatrix to PNG image bytes
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-        // Black QR code on white background
-        MatrixToImageConfig config = new MatrixToImageConfig(
-            0xFF000000, // foreground: black
-            0xFFFFFFFF  // background: white
+        BitMatrix bitMatrix = writer.encode(
+                url, BarcodeFormat.QR_CODE, QR_SIZE, QR_SIZE, hints
         );
 
-        MatrixToImageWriter.writeToStream(bitMatrix, "PNG", outputStream, config);
+        // Convert BitMatrix to BufferedImage manually
+        // This avoids any OS-level graphics dependency issues on Linux server
+        int width = bitMatrix.getWidth();
+        int height = bitMatrix.getHeight();
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                // Black pixel for QR modules, white for background
+                image.setRGB(x, y, bitMatrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF);
+            }
+        }
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ImageIO.write(image, "PNG", outputStream);
         return outputStream.toByteArray();
     }
 }
